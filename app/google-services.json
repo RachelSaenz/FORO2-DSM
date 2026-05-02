@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "378092937197",
+    "project_id": "foro2-dsm-dceb2",
+    "storage_bucket": "foro2-dsm-dceb2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:378092937197:android:a39d4b8f530c8bd2f511e4",
+        "android_client_info": {
+          "package_name": "com.example.controlgastos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCD7n-y-Xq11B842ugG0so_bLRSw1Voc_U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
