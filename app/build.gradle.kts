@@ -62,9 +62,18 @@ dependencies {
     // Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
 
-// Firebase Authentication
+    // Firebase Authentication
     implementation("com.google.firebase:firebase-auth")
 
-// Cloud Firestore
+    // Cloud Firestore
     implementation("com.google.firebase:firebase-firestore")
+
+    // Coroutines support for Firebase Tasks (.await())
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
+    // ViewModel for Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+
+    // Material Icons Extended (para Visibility/VisibilityOff)
+    implementation("androidx.compose.material:material-icons-extended")
 }
