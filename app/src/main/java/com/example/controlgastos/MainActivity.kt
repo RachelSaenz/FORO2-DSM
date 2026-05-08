@@ -4,44 +4,52 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.activity.viewModels
+import androidx.compose.runtime.*
 import com.example.controlgastos.ui.theme.ControlGastosPersonalesTheme
 
+sealed class Screen {
+    object Login : Screen()
+    object Register : Screen()
+    object Home : Screen()
+}
+
 class MainActivity : ComponentActivity() {
+
+    private val authViewModel: AuthViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
             ControlGastosPersonalesTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+                // Determinar pantalla inicial según sesión activa
+                var currentScreen by remember {
+                    mutableStateOf<Screen>(
+                        if (authViewModel.currentUser != null) Screen.Home else Screen.Login
+                    )
+                }
+
+                when (currentScreen) {
+                    is Screen.Login -> LoginScreen(
+                        viewModel = authViewModel,
+                        onNavigateToRegister = { currentScreen = Screen.Register },
+                        onLoginSuccess = { currentScreen = Screen.Home }
+                    )
+
+                    is Screen.Register -> RegisterScreen(
+                        viewModel = authViewModel,
+                        onNavigateToLogin = { currentScreen = Screen.Login },
+                        onRegisterSuccess = { currentScreen = Screen.Home }
+                    )
+
+                    is Screen.Home -> HomeScreen(
+                        viewModel = authViewModel,
+                        onLogout = { currentScreen = Screen.Login }
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ControlGastosPersonalesTheme {
-        Greeting("Android")
     }
 }
