@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -19,6 +21,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Load local.properties
+        val properties = Properties()
+        val propertiesFile = rootProject.file("local.properties")
+        if (propertiesFile.exists()) {
+            properties.load(propertiesFile.inputStream())
+        }
+
+        val webClientId = properties.getProperty("GOOGLE_WEB_CLIENT_ID") ?: ""
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$webClientId\"")
     }
 
     buildTypes {
@@ -39,6 +51,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -76,4 +89,7 @@ dependencies {
 
     // Material Icons Extended (para Visibility/VisibilityOff)
     implementation("androidx.compose.material:material-icons-extended")
+
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
 }

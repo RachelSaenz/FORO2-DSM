@@ -3,6 +3,7 @@ package com.example.controlgastos
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
@@ -88,6 +89,19 @@ class AuthViewModel : ViewModel() {
                 _authState.value = AuthState.Error("Correo o contraseña incorrectos")
             } catch (e: Exception) {
                 _authState.value = AuthState.Error("Error al iniciar sesión: ${e.message}")
+            }
+        }
+    }
+
+    fun signInWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
+                auth.signInWithCredential(credential).await()
+                _authState.value = AuthState.Success
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error("Error con Google: ${e.message}")
             }
         }
     }
