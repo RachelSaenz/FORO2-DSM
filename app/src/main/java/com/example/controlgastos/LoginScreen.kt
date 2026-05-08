@@ -24,6 +24,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.example.controlgastos.BuildConfig
 
 @Composable
 fun LoginScreen(
@@ -33,6 +40,21 @@ fun LoginScreen(
 ) {
     val authState by viewModel.authState.collectAsState()
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
+
+    val webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID
+
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            account?.idToken?.let { viewModel.signInWithGoogle(it) }
+        } catch (e: ApiException) {
+            // Manejar error si es necesario
+        }
+    }
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -176,6 +198,26 @@ fun LoginScreen(
                 } else {
                     Text("Iniciar sesión", fontSize = 16.sp)
                 }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Botón Google
+            OutlinedButton(
+                onClick = {
+                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(webClientId)
+                        .requestEmail()
+                        .build()
+                    val intent = GoogleSignIn.getClient(context, gso).signInIntent
+                    googleSignInLauncher.launch(intent)
+                },
+                enabled = authState !is AuthState.Loading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) {
+                Text("Iniciar sesión con Google", fontSize = 16.sp)
             }
 
             Spacer(modifier = Modifier.height(16.dp))

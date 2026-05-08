@@ -12,7 +12,20 @@
           "package_name": "com.example.controlgastos"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "281346088462-6ctbma5muuq638d0jibnctk4maaekdcp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.controlgastos",
+            "certificate_hash": "f41bddcc92271e2d86a923182fdef0c57d22b4cd"
+          }
+        },
+        {
+          "client_id": "281346088462-dn98vooedtgdgdva210m17mg1t0r7rk8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBnT1vG-m68GsXN2yH00RrKGhr3Rj5EFOU"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "281346088462-dn98vooedtgdgdva210m17mg1t0r7rk8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
