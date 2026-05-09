@@ -12,6 +12,7 @@ sealed class Screen {
     object Login : Screen()
     object Register : Screen()
     object Home : Screen()
+    object Gastos : Screen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -46,7 +47,12 @@ class MainActivity : ComponentActivity() {
 
                     is Screen.Home -> HomeScreen(
                         viewModel = authViewModel,
-                        onLogout = { currentScreen = Screen.Login }
+                        onLogout = { currentScreen = Screen.Login },
+                        onNavigateToGastos = { currentScreen = Screen.Gastos }
+                    )
+
+                    is Screen.Gastos -> GastosScreen(
+                        onBackToHome = { currentScreen = Screen.Home }
                     )
                 }
             }

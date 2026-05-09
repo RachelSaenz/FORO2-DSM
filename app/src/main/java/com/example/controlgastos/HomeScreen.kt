@@ -15,7 +15,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun HomeScreen(
     viewModel: AuthViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToGastos: () -> Unit
 ) {
     val email = viewModel.currentUser?.email ?: "Usuario"
 
@@ -48,18 +49,31 @@ fun HomeScreen(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = email,
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
             Spacer(modifier = Modifier.height(32.dp))
+
             Text(
                 text = "Sesión iniciada correctamente con Firebase Authentication.",
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = onNavigateToGastos,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Registrar y ver gastos")
+            }
         }
     }
 }
