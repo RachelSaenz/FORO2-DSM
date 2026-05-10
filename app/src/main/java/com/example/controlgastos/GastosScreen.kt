@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -32,6 +33,7 @@ data class Gasto(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GastosScreen(
+    viewModel: GastosViewModel,
     onBackToHome: () -> Unit = {}
 ) {
     var pantallaActual by remember { mutableStateOf("registro") }
@@ -68,7 +70,7 @@ fun GastosScreen(
         Box(modifier = Modifier.padding(padding)) {
             when (pantallaActual) {
                 "registro" -> RegistroGastoScreen()
-                "historial" -> HistorialGastosScreen()
+                "historial" -> HistorialGastosScreen(viewModel = viewModel)
             }
         }
     }
@@ -277,55 +279,32 @@ fun RegistroGastoScreen() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HistorialGastosScreen() {
-    val context = LocalContext.current
-    val auth = FirebaseAuth.getInstance()
-    val db = FirebaseFirestore.getInstance()
+fun HistorialGastosScreen(viewModel: GastosViewModel) {
+    val gastos by viewModel.gastos.collectAsState()
+    val cargando by viewModel.cargando.collectAsState()
 
-    var gastos by remember { mutableStateOf<List<Gasto>>(emptyList()) }
-    var cargando by remember { mutableStateOf(true) }
+    val calendar = Calendar.getInstance()
+    val mesAnio = "${calendar.get(Calendar.YEAR)}-${(calendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')}"
 
-    LaunchedEffect(Unit) {
-        val usuarioActual = auth.currentUser
+    var categoriaSeleccionada by remember { mutableStateOf("Todas") }
 
-        if (usuarioActual == null) {
-            Toast.makeText(context, "Debe iniciar sesión", Toast.LENGTH_SHORT).show()
-            cargando = false
-            return@LaunchedEffect
-        }
-
-        val uid = usuarioActual.uid
-
-        db.collection("usuarios")
-            .document(uid)
-            .collection("gastos")
-            .get()
-            .addOnSuccessListener { resultado ->
-                gastos = resultado.documents.map { documento ->
-                    Gasto(
-                        id = documento.id,
-                        nombre = documento.getString("nombre") ?: "",
-                        monto = documento.getDouble("monto") ?: 0.0,
-                        categoria = documento.getString("categoria") ?: "",
-                        fecha = documento.getString("fecha") ?: "",
-                        userId = documento.getString("userId") ?: ""
-                    )
-                }
-
-                cargando = false
-            }
-            .addOnFailureListener { error ->
-                Toast.makeText(
-                    context,
-                    "Error al cargar gastos: ${error.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-                cargando = false
-            }
+    val categorias = remember(gastos) {
+        listOf("Todas") + gastos.map { it.categoria }.distinct().sorted()
     }
 
-    val totalMensual = gastos.sumOf { it.monto }
+    val gastosFiltrados = remember(gastos, categoriaSeleccionada) {
+        viewModel.filtrarPorCategoria(gastos, categoriaSeleccionada)
+    }
+
+    val totalMensual = remember(gastos, mesAnio) {
+        viewModel.calcularTotalMensual(gastos, mesAnio)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarGastos()
+    }
 
     Column(
         modifier = Modifier
@@ -339,15 +318,12 @@ fun HistorialGastosScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Total mensual",
+                    text = "Total del mes actual",
                     style = MaterialTheme.typography.titleMedium
                 )
-
                 Text(
                     text = "$${String.format("%.2f", totalMensual)}",
                     style = MaterialTheme.typography.headlineMedium,
@@ -356,7 +332,20 @@ fun HistorialGastosScreen() {
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (categorias.size > 1) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(categorias) { cat ->
+                    FilterChip(
+                        selected = categoriaSeleccionada == cat,
+                        onClick = { categoriaSeleccionada = cat },
+                        label = { Text(cat) }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
 
         if (cargando) {
             Box(
@@ -365,31 +354,31 @@ fun HistorialGastosScreen() {
             ) {
                 CircularProgressIndicator()
             }
-        } else if (gastos.isEmpty()) {
-            Text("No hay gastos registrados.")
+        } else if (gastosFiltrados.isEmpty()) {
+            Text("No hay gastos registrados")
         } else {
             LazyColumn {
-                items(gastos) { gasto ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 12.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = gasto.nombre,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            Text("Monto: $${String.format("%.2f", gasto.monto)}")
-                            Text("Categoría: ${gasto.categoria}")
-                            Text("Fecha: ${gasto.fecha}")
-                        }
-                    }
+                items(gastosFiltrados) { gasto ->
+                    GastoItem(gasto = gasto)
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun GastoItem(gasto: Gasto) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = gasto.nombre,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("Monto: $${String.format("%.2f", gasto.monto)}")
+            Text("Categoría: ${gasto.categoria}")
+            Text("Fecha: ${gasto.fecha}")
         }
     }
 }

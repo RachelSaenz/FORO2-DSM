@@ -18,6 +18,7 @@ sealed class Screen {
 class MainActivity : ComponentActivity() {
 
     private val authViewModel: AuthViewModel by viewModels()
+    private val gastosViewModel: GastosViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +53,7 @@ class MainActivity : ComponentActivity() {
                     )
 
                     is Screen.Gastos -> GastosScreen(
+                        viewModel = gastosViewModel,
                         onBackToHome = { currentScreen = Screen.Home }
                     )
                 }
